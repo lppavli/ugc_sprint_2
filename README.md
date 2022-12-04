@@ -5,4 +5,3 @@ https://github.com/lppavli/ugc_sprint_2
 docker-compose up -d --build
 ## Исследование
 Исследование хранилища mongo доступно в папке Research
-
