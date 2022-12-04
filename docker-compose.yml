@@ -1,8 +1,8 @@
 version: '3.5'
 
 services:
-#  service:
-#    container_name: ugc_api
+#  app:
+#    container_name: app
 #    build:
 #      context: ./ugc/src
 #    ports:
@@ -14,68 +14,21 @@ services:
 #      - kafka
 #      - zookeeper
 #    networks:
-#      - zookeeper-kafka
+#      - ugc_network
 
   zookeeper:
     image: zookeeper:3.5
     container_name: zookeeper
     hostname: zookeeper
     networks:
-      - zookeeper-kafka
-
-  clickhouse-node1:
-    image: yandex/clickhouse-server:20.4
-    container_name: clickhouse-node1
-    hostname: clickhouse-node1
-    ports:
-      - "8123:8123"
-      - "9000:9000"
-    volumes:
-      - ./data/node1:/etc/clickhouse-server
-    depends_on:
-      - zookeeper
-    networks:
-      - zookeeper-kafka
-
-  clickhouse-node2:
-    image: yandex/clickhouse-server:20.4
-    container_name: clickhouse-node2
-    hostname: clickhouse-node2
-    volumes:
-      - ./data/node2:/etc/clickhouse-server
-    depends_on:
-      - zookeeper
-    networks:
-      - zookeeper-kafka
-
-  clickhouse-node3:
-    image: yandex/clickhouse-server:20.4
-    container_name: clickhouse-node3
-    hostname: clickhouse-node3
-    volumes:
-      - ./data/node3:/etc/clickhouse-server
-    depends_on:
-      - zookeeper
-    networks:
-      - zookeeper-kafka
-
-  clickhouse-node4:
-    image: yandex/clickhouse-server:20.4
-    container_name: clickhouse-node4
-    hostname: clickhouse-node4
-    volumes:
-      - ./data/node4:/etc/clickhouse-server
-    depends_on:
-      - zookeeper
-    networks:
-      - zookeeper-kafka
+      - ugc_network
 
   kafka:
     image: confluentinc/cp-kafka:7.0.1
     container_name: broker
     hostname: kafka
     networks:
-      - zookeeper-kafka
+      - ugc_network
     ports:
       # To learn about configuring Kafka for access across networks see
       # https://www.confluent.io/blog/kafka-client-cannot-connect-to-broker-on-aws-on-docker-etc/
@@ -92,23 +45,48 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_CREATE_TOPICS: "views"
 
+  mongodb_container:
+    container_name: mongodb_container
+    image: mongo
+    ports:
+      - 27017:27017
+    volumes:
+      - mongodb_data_container:/data/db
+    networks:
+      - ugc_network
 
-#  ugc_etl:
-#    build:
-#      context: ./ugc/etl
-#    depends_on:
-#      - service
-#    networks:
-#      - zookeeper-kafka
+  nginx:
+    image: nginx:1.19.2
+    volumes:
+      - ./deploy/etc/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/etc/nginx/conf.d:/etc/nginx/conf.d:ro
+      - /tmp/logs/nginx/:/var/log/nginx/
+    depends_on:
+      - app
+    ports:
+      - 80:80
 
+  filebeat:
+    build:
+      context: filebeat
+    container_name: filebeat
+    volumes:
+      - .ugc/src/logs/:/src/logs
+      - /tmp/logs/nginx:/var/log/nginx:ro
+    depends_on:
+      - elasticsearch
+      - kibana
+      - nginx
+      - logstash
+      - app
 
 volumes:
-  ugc_clickhouse_db:
+  mongodb_data_container:
 
 networks:
   default:
     external:
-      name: zookeeper-kafka
-  zookeeper-kafka:
+      name: ugc_network
+  ugc_network:
     driver: bridge
 

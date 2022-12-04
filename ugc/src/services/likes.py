@@ -1,4 +1,3 @@
-"""CRUD на лайки."""
 from datetime import datetime
 from http import HTTPStatus
 from typing import Optional
@@ -19,13 +18,14 @@ async def get_likes_list(
         limit: int = settings.DEFAULT_LIMIT,
         offset: int = settings.DEFAULT_OFFSET,
 ) -> list[Like]:
-    """Get likes list."""
-    data = await mongo.find(settings.MONGO_COLLECTION_LIKE, {"user_id": user_id}, limit=limit, offset=offset)
+    """Получить список лайков"""
+    data = await mongo.find(settings.MONGO_COLLECTION_LIKE, {"user_id": user_id},
+                            limit=limit, offset=offset)
     return [Like(**item) async for item in data]
 
 
 async def get_like(user_id: str, film_id: str) -> Optional[Like]:
-    """Get like."""
+    """Получить один лайк"""
     data = await mongo.find_one(settings.MONGO_COLLECTION_LIKE, {"user_id": user_id, "film_id": film_id})
     if not data:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
@@ -33,7 +33,7 @@ async def get_like(user_id: str, film_id: str) -> Optional[Like]:
 
 
 async def create_like(user_id: str, film_id: str) -> Like:
-    """Create like."""
+    """Создать лайк"""
     data = await mongo.find_one(settings.MONGO_COLLECTION_LIKE, {"user_id": user_id, "film_id": film_id})
     if data:
         raise HTTPException(status_code=HTTPStatus.BAD_REQUEST)
@@ -43,7 +43,7 @@ async def create_like(user_id: str, film_id: str) -> Like:
 
 
 async def remove_like(user_id: str, film_id: str) -> None:
-    """Remove like."""
+    """Удалить лайк"""
     data = await mongo.find_one(settings.MONGO_COLLECTION_LIKE, {"user_id": user_id, "film_id": film_id})
     if not data:
         raise HTTPException(status_code=HTTPStatus.NOT_FOUND)
