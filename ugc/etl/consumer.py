@@ -4,9 +4,8 @@ import uuid
 
 import backoff as backoff
 from clickhouse_driver import Client
-from kafka import KafkaConsumer, TopicPartition, OffsetAndMetadata
+from kafka import KafkaConsumer, OffsetAndMetadata, TopicPartition
 from kafka.errors import NoBrokersAvailable
-
 from settings import Settings
 
 settings = Settings()

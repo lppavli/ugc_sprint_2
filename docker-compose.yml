@@ -89,4 +89,3 @@ networks:
       name: ugc_network
   ugc_network:
     driver: bridge
-
