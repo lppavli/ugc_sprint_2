@@ -5,7 +5,7 @@ import logging
 import sentry_sdk
 import uvicorn
 from aiokafka import AIOKafkaProducer
-from api.v1 import progress
+from api.v1 import progress, rewies, bookmarks
 from core.settings import Settings
 from db import kafka_producer
 from fastapi import FastAPI
@@ -52,6 +52,8 @@ async def shutdown():
 
 app.include_router(progress.router, prefix="/ugc/v1", tags=["progress_film"])
 app.include_router(likes.router, prefix="/api/v1/likes", tags=["likes"])
+app.include_router(bookmarks.router, prefix="/api/v1/bookmarks", tags=["bookmarks"])
+app.include_router(rewies.router, prefix="/api/v1/rewies", tags=["rewies"])
 
 if __name__ == "__main__":
     logging.info("Start application")
